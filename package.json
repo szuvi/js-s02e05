@@ -15,5 +15,8 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.23.2",
     "prettier": "2.3.0"
+  },
+  "dependencies": {
+    "rxjs": "^7.0.1"
   }
 }
