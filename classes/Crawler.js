@@ -1,4 +1,6 @@
-// TODO does workers share variables reference?
+const Network = require('./Network');
+const Node = require('./Node');
+
 class Crawler {
   constructor(currentNetwork, startAddress, endAddress) {
     this.startAddress = startAddress;
@@ -9,37 +11,56 @@ class Crawler {
     this.thereIsPath = true;
   }
 
-  testConnection(output) {
+  testConnection() {
     let result;
-    if (this.isSought(this.startAddress)) {
-      result = this.network.nodeAt(this.startAddress);
+    if (!this.nodesExist()) {
+      result = `No such nodes in network: ${this.startAddress} ${this.endAddress}`;
+    } else if (
+      this.isSought(Network.nodeAtExternal(this.network, this.startAddress))
+    ) {
+      // case when start point is same as endpoint
+      // result = this.network.nodeAt(this.startAddress);
+      result = Network.nodeAtExternal(this.network, this.startAddress);
     } else {
       result = this.findConnection();
     }
-    output(result);
+    return result;
+  }
+
+  nodesExist() {
+    return (
+      Network.nodeExistsExternal(this.network, this.startAddress) &&
+      Network.nodeExistsExternal(this.network, this.endAddress)
+    );
   }
 
   isSought(node) {
-    return node.adress === this.endAddress; // TODO might change depending on adress format
+    return node.address === this.endAddress;
   }
 
+  // eslint-disable-next-line consistent-return
   findConnection() {
     this.setStartingNode();
     while (this.thereIsPath) {
       const currentNode = this.goToNextNode();
-      if (this.isSought(currentNode)) {
-        return 'Connection existis';
+      if (currentNode == null) {
+        return `No connection from ${this.startAddress} to ${this.endAddress}`;
       }
-      this.visitedNodes.push(currentNode.adress);
+      if (this.isSought(currentNode)) {
+        return `Connection from ${this.startAddress} to ${this.endAddress} exists!`;
+      }
+      this.visitedNodes.push(currentNode.address);
       this.previousNode = currentNode;
     }
-
-    return 'No connection';
   }
 
   setStartingNode() {
     this.visitedNodes.push(this.startAddress);
-    const startingNode = this.network.nodeAt(this.startAddress);
+    // const startingNode = this.network.nodeAt(this.startAddress);
+    const startingNode = Network.nodeAtExternal(
+      this.network,
+      this.startAddress,
+    );
     this.previousNode = startingNode;
   }
 
@@ -50,7 +71,8 @@ class Crawler {
       return null;
     }
     const randomIndex = Math.floor(Math.random() * paths.length);
-    return this.network.nodeAt(paths[randomIndex]);
+    // return this.network.nodeAt(paths[randomIndex]);
+    return Network.nodeAtExternal(this.network, paths[randomIndex]);
   }
 
   getUnvisitedPaths() {
@@ -63,17 +85,19 @@ class Crawler {
   }
 
   getDirectPathsFromPrev() {
-    const avaiablePaths = this.previousNode.getPaths();
+    // const avaiablePaths = this.previousNode.getPaths();
+    const avaiablePaths = Node.getPathsExternal(this.previousNode);
     return avaiablePaths.filter(
       (path) => this.visitedNodes.indexOf(path) === -1,
     );
   }
 
-  // TODO FIX INDIRECT
-
   getIndirectPath() {
     return this.visitedNodes.reduce((acc, address) => {
-      const nodePaths = this.network.nodeAt(address).getPaths();
+      // const nodePaths = this.network.nodeAt(address).getPaths();
+      const nodePaths = Node.getPathsExternal(
+        Network.nodeAtExternal(this.network, address),
+      );
 
       nodePaths.forEach((nodePath) => {
         if (this.visitedNodes.indexOf(nodePath) === -1) {
@@ -87,19 +111,3 @@ class Crawler {
 }
 
 module.exports = Crawler;
-
-// go to first node
-// is it destination?
-//  yes => weee im done
-//  no?
-//    this.visitedNodes.push(current node with possible paths)
-//
-//    does this node lead to node I didn't visit?
-//      YES
-//        go to next node (can be random)
-//      NO
-//        Are there any more nodes I visited with connection to a node I didnt visit?
-//          Yes =>  Teleport
-//          No => GAME OVER :<
-
-// READ ABOUT NODE WORKERS!

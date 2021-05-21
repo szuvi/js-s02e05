@@ -14,8 +14,16 @@ class Network {
     this.nodes[destination].addPath(source);
   }
 
-  nodeAt(adress) {
-    return this.nodes[adress];
+  nodeAt(address) {
+    return this.nodes[address];
+  }
+
+  static nodeAtExternal(network, address) {
+    return network.nodes[address];
+  }
+
+  static nodeExistsExternal(network, nodeAddress) {
+    return network.nodes[nodeAddress] != null;
   }
 }
 

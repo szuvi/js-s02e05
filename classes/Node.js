@@ -1,6 +1,6 @@
 class Node {
-  constructor(adress) {
-    this.adress = adress;
+  constructor(address) {
+    this.address = address;
     this.possiblePaths = [];
   }
 
@@ -8,8 +8,12 @@ class Node {
     return this.possiblePaths;
   }
 
-  addPath(adress) {
-    this.possiblePaths.push(adress);
+  addPath(address) {
+    this.possiblePaths.push(address);
+  }
+
+  static getPathsExternal(node) {
+    return node.possiblePaths;
   }
 }
 
